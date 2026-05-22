@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-﻿<odoo></odoo>
-=======
 <odoo>
     <!-- FEFO Suggestion Wizard Form View -->
     <record id="view_fruit_fefo_suggestion_wizard_form" model="ir.ui.view">
@@ -62,4 +59,3 @@
               action="action_fruit_fefo_suggestion"
               sequence="30"/>
 </odoo>
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
