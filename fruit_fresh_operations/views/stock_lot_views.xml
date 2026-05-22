@@ -19,8 +19,6 @@
         </field>
     </record>
 
-<<<<<<< HEAD
-=======
     <record id="view_stock_lot_tree_fruit_custom" model="ir.ui.view">
         <field name="name">stock.lot.tree.fruit.custom</field>
         <field name="model">stock.lot</field>
@@ -41,7 +39,6 @@
         </field>
     </record>
 
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
     <record id="action_fefo_batch_control" model="ir.actions.act_window">
         <field name="name">FEFO Batch Control</field>
         <field name="res_model">stock.lot</field>
@@ -54,8 +51,4 @@
               parent="menu_fruit_operations_root"
               action="action_fefo_batch_control"
               sequence="30"/>
-<<<<<<< HEAD
 </odoo>
-=======
-</odoo>
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
