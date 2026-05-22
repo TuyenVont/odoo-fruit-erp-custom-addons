@@ -32,10 +32,8 @@ class StockPicking(models.Model):
 
         line = move_lines[0]
 
-<<<<<<< HEAD
         if not line.lot_id:
             raise UserError("Bạn cần nhập Lot/Serial Number trước khi tạo QC Check.")
-=======
         lot = line.lot_id
         if not lot and line.lot_name:
             # Tìm hoặc tự động tạo Lot record từ chuỗi lot_name mà người dùng nhập
@@ -54,7 +52,6 @@ class StockPicking(models.Model):
 
         if not line.lot_id:
             raise UserError("Bạn cần nhập Lot/Serial Number và bấm Lưu trước khi tạo QC Check. Hãy kiểm tra chắc chắn sản phẩm đã được bật cấu hình theo dõi theo Lot.")
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
 
         received_qty = line.quantity or line.qty_done or line.reserved_uom_qty or 0
 
@@ -86,8 +83,4 @@ class StockPicking(models.Model):
             "view_mode": "list,form",
             "domain": [("picking_id", "=", self.id)],
             "context": {"default_picking_id": self.id},
-<<<<<<< HEAD
         }
-=======
-        }
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
