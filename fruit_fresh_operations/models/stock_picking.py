@@ -32,8 +32,6 @@ class StockPicking(models.Model):
 
         line = move_lines[0]
 
-        if not line.lot_id:
-            raise UserError("Bạn cần nhập Lot/Serial Number trước khi tạo QC Check.")
         lot = line.lot_id
         if not lot and line.lot_name:
             # Tìm hoặc tự động tạo Lot record từ chuỗi lot_name mà người dùng nhập
