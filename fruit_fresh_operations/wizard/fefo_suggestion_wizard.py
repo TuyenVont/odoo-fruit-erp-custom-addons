@@ -1,4 +1,5 @@
 from odoo import fields, models
+from odoo.exceptions import UserError
 
 
 class FruitFefoSuggestionWizard(models.TransientModel):
@@ -34,7 +35,7 @@ class FruitFefoSuggestionWizard(models.TransientModel):
                 continue
             if lot.x_qc_status == "failed":
                 continue
-            if lot.x_fefo_alert == "expired":
+            if lot.x_fefo_alert == "expired" or (lot.x_expiry_date and lot.x_expiry_date < fields.Date.today()):
                 continue
 
             lot_rows.append({
@@ -44,6 +45,9 @@ class FruitFefoSuggestionWizard(models.TransientModel):
                 "days_to_expiry": lot.x_days_to_expiry,
                 "alert": lot.x_fefo_alert,
             })
+
+        if not lot_rows:
+            raise UserError("Không tìm thấy bất kỳ lô hàng nào còn tồn kho cho sản phẩm này tại vị trí đã chọn (hoặc tất cả các lô hiện có đều đã hết hạn hoặc bị đánh giá QC hỏng). Vui lòng thực hiện Nhập kho (Receipt) và QC Đạt trước khi chạy Gợi ý FEFO.")
 
         lot_rows.sort(key=lambda r: (r["expiry_date"], r["lot"].name))
 
