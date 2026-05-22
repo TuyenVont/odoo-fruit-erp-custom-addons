@@ -108,10 +108,7 @@ class FruitQcCheck(models.Model):
             })
 
             if rec.rejected_qty > 0:
-<<<<<<< HEAD
-=======
                 # 1. Tạo Wastage Log
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
                 wastage = self.env["fruit.wastage.log"].create({
                     "date": rec.qc_date,
                     "qc_check_id": rec.id,
@@ -123,10 +120,6 @@ class FruitQcCheck(models.Model):
                     "note": "Generated from QC Check %s" % rec.name,
                 })
                 rec.wastage_log_id = wastage.id
-
-<<<<<<< HEAD
-            rec.state = "done"
-=======
                 # 2. Tự động Tạo và Xác nhận Phiếu Hủy Hàng (stock.scrap) vật lý
                 if rec.action_required == 'wastage':
                     scrap_vals = {
@@ -201,4 +194,3 @@ class FruitQcCheck(models.Model):
                         rec.picking_id.message_post(body="Không thể tự động chuyển kho đạt chuẩn: %s" % str(e))
 
             rec.state = "done"
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
