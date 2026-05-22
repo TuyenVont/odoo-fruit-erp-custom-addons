@@ -32,8 +32,24 @@ class StockPicking(models.Model):
 
         line = move_lines[0]
 
+        lot = line.lot_id
+        if not lot and line.lot_name:
+            # Tìm hoặc tự động tạo Lot record từ chuỗi lot_name mà người dùng nhập
+            lot = self.env["stock.lot"].search([
+                ("name", "=", line.lot_name),
+                ("product_id", "=", line.product_id.id),
+                ("company_id", "=", self.company_id.id),
+            ], limit=1)
+            if not lot:
+                lot = self.env["stock.lot"].create({
+                    "name": line.lot_name,
+                    "product_id": line.product_id.id,
+                    "company_id": self.company_id.id,
+                })
+            line.write({"lot_id": lot.id})
+
         if not line.lot_id:
-            raise UserError("Bạn cần nhập Lot/Serial Number trước khi tạo QC Check.")
+            raise UserError("Bạn cần nhập Lot/Serial Number và bấm Lưu trước khi tạo QC Check. Hãy kiểm tra chắc chắn sản phẩm đã được bật cấu hình theo dõi theo Lot.")
 
         received_qty = line.quantity or line.qty_done or line.reserved_uom_qty or 0
 
