@@ -1,13 +1,9 @@
-<<<<<<< HEAD
 import csv
 import io
 import requests
 from odoo import api, fields, models
 from odoo.exceptions import UserError
-=======
-from odoo import api, fields, models
 
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
 
 class FruitCrmMarketInfo(models.Model):
     _name = "fruit.crm.market.info"
@@ -131,7 +127,6 @@ class FruitCrmMarketInfo(models.Model):
         readonly=True,
     )
 
-<<<<<<< HEAD
     def action_sync_price_from_github(self):
         url = "https://raw.githubusercontent.com/TuyenVont/odoo-fruit-erp-custom-addons/main/data_daily/gia_trai_cay_tong_hop.csv"
         
@@ -157,15 +152,25 @@ class FruitCrmMarketInfo(models.Model):
             })
 
         for row in reader:
-            sku = row.get('Mã SKU')
-            ten_sp = row.get('Tên Sản Phẩm')
-            gia_san = float(row.get('Giá Bán Hiện Tại', 0))
-            nguon_sao = row.get('Nguồn Dữ Liệu', 'Thị trường')
+            # Chuẩn hóa key về dạng chữ thường để tránh lỗi KeyError
+            row_clean = {str(k).strip().lower(): v for k, v in row.items() if k}
+
+            # Tìm kiếm linh hoạt các cột dữ liệu từ file CSV
+            sku = row_clean.get('mã sku') or row_clean.get('sku') or row_clean.get('ma sku')
+            ten_sp = row_clean.get('tên sản phẩm') or row_clean.get('ten san pham') or row_clean.get('name')
+            gia_san_raw = row_clean.get('giá bán hiện tại') or row_clean.get('gia ban hien tai') or row_clean.get('price')
+            nguon_sao = row_clean.get('nguồn dữ liệu') or row_clean.get('nguon du lieu') or row_clean.get('source', 'Thị trường')
+
+            # Ép kiểu dữ liệu giá thành số thực an toàn
+            try:
+                gia_san = float(gia_san_raw) if gia_san_raw else 0.0
+            except ValueError:
+                gia_san = 0.0
 
             if not ten_sp or gia_san <= 0:
                 continue
 
-            # Tìm sản phẩm trong Odoo để lấy đúng ID liên kết
+            # 1. Tìm sản phẩm trong Odoo để lấy đúng ID liên kết
             product = self.env['product.product'].search([
                 '|', 
                 ('name', 'ilike', ten_sp), 
@@ -173,7 +178,7 @@ class FruitCrmMarketInfo(models.Model):
             ], limit=1)
 
             if product:
-                # Tạo mới một dòng thông tin thị trường làm cơ sở phân tích dữ liệu CRM
+                # 2. Tạo mới một dòng thông tin thị trường làm cơ sở phân tích dữ liệu CRM
                 self.create({
                     'lead_id': lead_scraped.id,
                     'product_id': product.id,
@@ -196,8 +201,6 @@ class FruitCrmMarketInfo(models.Model):
             }
         }
 
-=======
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)

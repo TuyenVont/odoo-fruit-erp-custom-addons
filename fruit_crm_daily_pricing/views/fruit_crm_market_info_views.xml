@@ -4,7 +4,6 @@
         <field name="model">fruit.crm.market.info</field>
         <field name="arch" type="xml">
             <form string="Fruit Market Information">
-<<<<<<< HEAD
                 <header>
                     <button name="action_sync_price_from_github" 
                             string="Đồng bộ giá từ Sàn" 
@@ -12,8 +11,6 @@
                             class="oe_highlight" 
                             icon="fa-cloud-download"/>
                 </header>
-=======
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
                 <sheet>
                     <group>
                         <group string="CRM Source">
@@ -60,11 +57,7 @@
     </record>
 
     <record id="view_fruit_crm_market_info_tree" model="ir.ui.view">
-<<<<<<< HEAD
         <field name="name">fruit.crm.market.info.list</field>
-=======
-        <field name="name">fruit.crm.market.info.tree</field>
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
         <field name="model">fruit.crm.market.info</field>
         <field name="arch" type="xml">
             <list>
@@ -87,12 +80,8 @@
     <record id="action_fruit_crm_market_info" model="ir.actions.act_window">
         <field name="name">Market Information</field>
         <field name="res_model">fruit.crm.market.info</field>
-<<<<<<< HEAD
-        <field name="view_mode">list,form</field> </record>
-=======
         <field name="view_mode">list,form</field>
     </record>
->>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
 
     <menuitem id="menu_fruit_crm_market_info"
               name="Market Information"

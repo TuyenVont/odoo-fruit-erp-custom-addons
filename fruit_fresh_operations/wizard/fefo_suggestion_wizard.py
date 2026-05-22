@@ -1,6 +1,6 @@
 from odoo import fields, models
-from odoo.exceptions import UserError
 
+from odoo.exceptions import UserError
 
 class FruitFefoSuggestionWizard(models.TransientModel):
     _name = "fruit.fefo.suggestion.wizard"
@@ -36,8 +36,11 @@ class FruitFefoSuggestionWizard(models.TransientModel):
             if lot.x_qc_status == "failed":
                 continue
 
-            if lot.x_fefo_alert == "expired" or (lot.x_expiry_date and lot.x_expiry_date < fields.Date.today()):
-                continue
+            if lot.x_fefo_alert == "expired":
+
+                if lot.x_fefo_alert == "expired" or (lot.x_expiry_date and lot.x_expiry_date < fields.Date.today()):
+
+                    continue
 
             lot_rows.append({
                 "lot": lot,
@@ -103,4 +106,8 @@ class FruitFefoSuggestionLine(models.TransientModel):
         ("red", "Red"),
         ("expired", "Expired"),
     ], string="Alert")
+
     reason = fields.Char(string="Reason")
+
+    reason = fields.Char(string="Reason")
+
