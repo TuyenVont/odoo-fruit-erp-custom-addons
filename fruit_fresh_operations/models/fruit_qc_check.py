@@ -108,6 +108,7 @@ class FruitQcCheck(models.Model):
             })
 
             if rec.rejected_qty > 0:
+                # 1. Tạo Wastage Log
                 wastage = self.env["fruit.wastage.log"].create({
                     "date": rec.qc_date,
                     "qc_check_id": rec.id,
@@ -119,5 +120,78 @@ class FruitQcCheck(models.Model):
                     "note": "Generated from QC Check %s" % rec.name,
                 })
                 rec.wastage_log_id = wastage.id
+
+                # 2. Tự động Tạo và Xác nhận Phiếu Hủy Hàng (stock.scrap) vật lý
+                if rec.action_required == 'wastage':
+                    scrap_vals = {
+                        "product_id": rec.product_id.id,
+                        "scrap_qty": rec.rejected_qty,
+                        "lot_id": rec.lot_id.id,
+                        "location_id": rec.picking_id.location_dest_id.id,
+                    }
+                    if rec.rejected_location_id:
+                        scrap_vals["scrap_location_id"] = rec.rejected_location_id.id
+                    
+                    try:
+                        scrap = self.env["stock.scrap"].create(scrap_vals)
+                        scrap.action_validate()
+                    except Exception as e:
+                        rec.picking_id.message_post(body="Không thể tự động hủy kho hàng lỗi: %s" % str(e))
+
+            # 3. Tự động dịch chuyển kho hàng đạt chuẩn (Internal Transfer) nếu cần
+            if rec.accepted_qty > 0 and rec.action_required == 'stock' and rec.accepted_location_id:
+                source_loc = rec.picking_id.location_dest_id
+                if rec.accepted_location_id != source_loc:
+                    try:
+                        picking_type = self.env['stock.picking.type'].search([
+                            ('code', '=', 'internal'),
+                            ('warehouse_id', '=', rec.picking_id.picking_type_id.warehouse_id.id)
+                        ], limit=1)
+                        if not picking_type:
+                            picking_type = self.env['stock.picking.type'].search([('code', '=', 'internal')], limit=1)
+                        
+                        if picking_type:
+                            internal_transfer = self.env['stock.picking'].create({
+                                'picking_type_id': picking_type.id,
+                                'location_id': source_loc.id,
+                                'location_dest_id': rec.accepted_location_id.id,
+                                'origin': "QC Check: %s" % rec.name,
+                            })
+                            move = self.env['stock.move'].create({
+                                'name': rec.product_id.name,
+                                'product_id': rec.product_id.id,
+                                'product_uom_qty': rec.accepted_qty,
+                                'product_uom': rec.product_id.uom_id.id,
+                                'location_id': source_loc.id,
+                                'location_dest_id': rec.accepted_location_id.id,
+                                'picking_id': internal_transfer.id,
+                            })
+                            internal_transfer.action_confirm()
+                            
+                            # Gán Lot cho Move Line
+                            move_line = move.move_line_ids[0] if move.move_line_ids else False
+                            if move_line:
+                                vals = {'lot_id': rec.lot_id.id}
+                                if 'quantity' in move_line._fields:
+                                    vals['quantity'] = rec.accepted_qty
+                                if 'qty_done' in move_line._fields:
+                                    vals['qty_done'] = rec.accepted_qty
+                                move_line.write(vals)
+                            else:
+                                vals = {
+                                    'move_id': move.id,
+                                    'product_id': rec.product_id.id,
+                                    'lot_id': rec.lot_id.id,
+                                    'location_id': source_loc.id,
+                                    'location_dest_id': rec.accepted_location_id.id,
+                                }
+                                if 'quantity' in self.env['stock.move.line']._fields:
+                                    vals['quantity'] = rec.accepted_qty
+                                if 'qty_done' in self.env['stock.move.line']._fields:
+                                    vals['qty_done'] = rec.accepted_qty
+                                self.env['stock.move.line'].create(vals)
+                            internal_transfer.button_validate()
+                    except Exception as e:
+                        rec.picking_id.message_post(body="Không thể tự động chuyển kho đạt chuẩn: %s" % str(e))
 
             rec.state = "done"
