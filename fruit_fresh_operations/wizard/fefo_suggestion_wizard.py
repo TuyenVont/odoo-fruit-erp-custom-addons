@@ -1,4 +1,8 @@
 from odoo import fields, models
+<<<<<<< HEAD
+=======
+from odoo.exceptions import UserError
+>>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
 
 
 class FruitFefoSuggestionWizard(models.TransientModel):
@@ -34,7 +38,11 @@ class FruitFefoSuggestionWizard(models.TransientModel):
                 continue
             if lot.x_qc_status == "failed":
                 continue
+<<<<<<< HEAD
             if lot.x_fefo_alert == "expired":
+=======
+            if lot.x_fefo_alert == "expired" or (lot.x_expiry_date and lot.x_expiry_date < fields.Date.today()):
+>>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
                 continue
 
             lot_rows.append({
@@ -45,6 +53,12 @@ class FruitFefoSuggestionWizard(models.TransientModel):
                 "alert": lot.x_fefo_alert,
             })
 
+<<<<<<< HEAD
+=======
+        if not lot_rows:
+            raise UserError("Không tìm thấy bất kỳ lô hàng nào còn tồn kho cho sản phẩm này tại vị trí đã chọn (hoặc tất cả các lô hiện có đều đã hết hạn hoặc bị đánh giá QC hỏng). Vui lòng thực hiện Nhập kho (Receipt) và QC Đạt trước khi chạy Gợi ý FEFO.")
+
+>>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
         lot_rows.sort(key=lambda r: (r["expiry_date"], r["lot"].name))
 
         remaining = self.required_qty
@@ -97,4 +111,8 @@ class FruitFefoSuggestionLine(models.TransientModel):
         ("red", "Red"),
         ("expired", "Expired"),
     ], string="Alert")
+<<<<<<< HEAD
     reason = fields.Char(string="Reason")
+=======
+    reason = fields.Char(string="Reason")
+>>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591

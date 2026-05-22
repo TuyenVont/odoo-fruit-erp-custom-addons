@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 import csv
 import io
 import requests
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+=======
+from odoo import api, fields, models
+
+>>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
 
 class FruitCrmMarketInfo(models.Model):
     _name = "fruit.crm.market.info"
@@ -126,6 +131,7 @@ class FruitCrmMarketInfo(models.Model):
         readonly=True,
     )
 
+<<<<<<< HEAD
     def action_sync_price_from_github(self):
         url = "https://raw.githubusercontent.com/TuyenVont/odoo-fruit-erp-custom-addons/main/data_daily/gia_trai_cay_tong_hop.csv"
         
@@ -190,6 +196,8 @@ class FruitCrmMarketInfo(models.Model):
             }
         }
 
+=======
+>>>>>>> 4ed5e83b0c80b286361d414de98decf8ef1ea591
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)

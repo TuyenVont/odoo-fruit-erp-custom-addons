@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Odoo / logs
+*.log
+*.pot
+*.mo
+*.po~
+*.bak
+*.tmp
+
+# Local config / secrets
+odoo.conf
+*.conf
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database / backups
+*.dump
+*.sql
+*.zip
+*.tar
+*.gz
+*.backup
