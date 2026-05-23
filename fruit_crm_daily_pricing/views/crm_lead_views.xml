@@ -1,45 +1,35 @@
 <odoo>
-    <record id="view_crm_lead_form_fruit_market_info" model="ir.ui.view">
-        <field name="name">crm.lead.form.fruit.market.info</field>
+    <record id="view_crm_lead_form_inherit" model="ir.ui.view">
+        <field name="name">crm.lead.form.inherit.market</field>
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
+            
+            <xpath expr="//header" position="inside">
+                <button name="sync_market_price_from_github"
+                        type="object"
+                        string="Sync Market Price"
+                        class="btn-primary"/>
+                        
+                <button name="restore_previous_prices"
+                        type="object"
+                        string="Restore Prices"
+                        class="btn-secondary"/>
+            </xpath>
 
             <xpath expr="//notebook" position="inside">
-                <page string="Fruit Market Info">
+                <page string="Fruit Market Info" name="fruit_market_info">
                     <field name="fruit_market_info_ids">
-                        <list editable="bottom">
-                            <field name="info_date"/>
+                        <tree editable="bottom">
                             <field name="product_id"/>
-                            <field name="grade"/>
                             <field name="expected_qty"/>
-                            <field name="uom_id"/>
                             <field name="customer_target_price"/>
                             <field name="competitor_price"/>
-                            <field name="market_demand_level"/>
-                            <field name="confidence"/>
-                            <field name="expected_delivery_date"/>
-                            <field name="region"/>
-                            <field name="state"/>
-                        </list>
-                    </field>
-                </page>
+                            <field name="info_date"/>
+                        </tree>
+                    </field> </page>
             </xpath>
-
-            <xpath expr="//sheet" position="inside">
-                <div class="oe_button_box" name="button_box">
-                    <button name="action_view_fruit_market_info"
-                            type="object"
-                            class="oe_stat_button"
-                            icon="fa-line-chart"
-                            invisible="fruit_market_info_count == 0">
-                        <field name="fruit_market_info_count"
-                               widget="statinfo"
-                               string="Market Info"/>
-                    </button>
-                </div>
-            </xpath>
-
+            
         </field>
     </record>
 </odoo>
