@@ -109,7 +109,6 @@ class FruitQcCheck(models.Model):
 
             if rec.rejected_qty > 0:
                 # 1. Tạo Wastage Log
-
                 wastage = self.env["fruit.wastage.log"].create({
                     "date": rec.qc_date,
                     "qc_check_id": rec.id,
@@ -122,6 +121,8 @@ class FruitQcCheck(models.Model):
                 })
                 rec.wastage_log_id = wastage.id
 
+
+            rec.state = "done"
                 # 2. Tự động Tạo và Xác nhận Phiếu Hủy Hàng (stock.scrap) vật lý
             if rec.action_required == 'wastage':
                     scrap_vals = {

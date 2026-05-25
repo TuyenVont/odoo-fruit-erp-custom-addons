@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_fruit_daily_price_board_form" model="ir.ui.view">
         <field name="name">fruit.daily.price.board.form</field>
@@ -34,16 +35,21 @@
                             string="Cancel"
                             invisible="state in ['cancelled']"/>
 
-                    <field name="state" widget="statusbar"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,generated,confirmed,applied"/>
                 </header>
 
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="state != 'draft'" placeholder="Ví dụ: Bảng giá thị trường ngày 23/05"/>
+                        </h1>
+                    </div>
                     <group>
                         <group string="Board Information">
-                            <field name="name"/>
-                            <field name="price_date"/>
-                            <field name="sales_team_id"/>
-                            <field name="target_margin_percent"/>
+                            <field name="price_date" readonly="state != 'draft'"/>
+                            <field name="sales_team_id" readonly="state != 'draft'"/>
+                            <field name="product_categ_id" readonly="state != 'draft'"/>
+                            <field name="target_margin_percent" readonly="state != 'draft'"/>
                         </group>
 
                         <group string="Sales Connection">
@@ -53,27 +59,29 @@
 
                     <notebook>
                         <page string="Daily Price Lines">
-                            <field name="line_ids">
-                                <list editable="bottom">
-                                    <field name="product_id"/>
+                            <field name="line_ids" readonly="state in ['confirmed', 'applied', 'cancelled']">
+                                <list editable="bottom" decoration-danger="product_id == False">
+                                    <field name="product_id" options="{'no_create': True}"/>
                                     <field name="grade"/>
-                                    <field name="total_crm_demand_qty"/>
+                                    <field name="total_crm_demand_qty" sum="Tổng sản lượng dự kiến"/>
                                     <field name="market_info_count"/>
-                                    <field name="avg_customer_target_price"/>
-                                    <field name="avg_competitor_price"/>
-                                    <field name="current_cost"/>
+                                    <field name="avg_competitor_price" string="Giá đối thủ (Crawl)" readonly="1"/>
+                                    <field name="avg_customer_target_price" string="Giá kỳ vọng khách" readonly="1"/>
+                                    <field name="current_cost" readonly="1"/>
                                     <field name="target_margin_percent"/>
                                     <field name="demand_adjustment"/>
-                                    <field name="suggested_price"/>
-                                    <field name="final_price"/>
-                                    <field name="margin_percent"/>
+                                    <field name="suggested_price" readonly="1"/>
+                                    
+                                    <field name="final_price" string="Giá chốt báo giá" class="oe_inline"/>
+                                    
+                                    <field name="margin_percent" readonly="1"/>
                                     <field name="note"/>
                                 </list>
                             </field>
                         </page>
 
                         <page string="Note">
-                            <field name="note"/>
+                            <field name="note" placeholder="Ghi chú nội bộ cho bảng giá hôm nay..."/>
                         </page>
                     </notebook>
                 </sheet>
@@ -85,13 +93,13 @@
         <field name="name">fruit.daily.price.board.tree</field>
         <field name="model">fruit.daily.price.board</field>
         <field name="arch" type="xml">
-            <list>
+            <list string="Daily Fruit Price Boards">
                 <field name="name"/>
                 <field name="price_date"/>
                 <field name="sales_team_id"/>
                 <field name="target_margin_percent"/>
                 <field name="pricelist_id"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'generated'" decoration-success="state in ['confirmed', 'applied']"/>
             </list>
         </field>
     </record>
