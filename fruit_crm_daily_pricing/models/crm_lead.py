@@ -43,11 +43,13 @@ class CrmLead(models.Model):
         text = re.sub(r"[^a-z0-9\s]", " ", text)
         text = re.sub(r"\s+", " ", text).strip()
         noise_words = {
-            "kg","g","gr","gram","trai","hop","tui","vi",
-            "loai","l1","rpl","vf","select","coop","co","op",
-            "online","tu","khoang","tro","len","dong","goi",
-            "mieng","nhap","khau","noi","dia","trung","my",
-            "phap","nam","phi","uc","newzealand"
+            "kg", "g", "gr", "gram", "trai", "hop", "tui", "vi",
+            "loai", "l1", "rpl", "vf", "select", "coop", "co", "op",
+            "online", "tu", "khoang", "tro", "len", "dong", "goi",
+            "mieng", "nhap", "khau", "noi", "dia", "trung", "my",
+            "phap", "nam", "phi", "uc", "newzealand", "new", "zealand",
+            "chon", "loc", "size", "combo", "khay", "nuoc", "tuoi",
+            "sach", "bich", "lon", "vua", "to",
         }
         tokens = [t for t in text.split() if t not in noise_words and not t.isdigit()]
         return " ".join(tokens)
@@ -62,6 +64,7 @@ class CrmLead(models.Model):
             ("dua gang", ["dua gang"]),
             ("dua le", ["dua le"]),
             ("dua xiem", ["dua xiem"]),
+            ("dua", ["dua", "thom", "khom"]),   # dứa / thơm / khóm
             ("chuoi", ["chuoi"]),
             ("buoi", ["buoi"]),
             ("cam", ["cam"]),
@@ -72,19 +75,27 @@ class CrmLead(models.Model):
             ("le", ["le"]),
             ("quyt", ["quyt"]),
             ("mit", ["mit"]),
-            ("sapoche", ["sapoche","sapo"]),
+            ("sapoche", ["sapoche", "sapo"]),
             ("bo", ["bo"]),
             ("coc", ["coc"]),
-            ("thom", ["thom","khom"]),
             ("kiwi", ["kiwi"]),
             ("nho", ["nho"]),
             ("chanh day", ["chanh day"]),
             ("du du", ["du du"]),
             ("dao", ["dao"]),
+            ("mang cut", ["mang cut"]),
+            ("sau rieng", ["sau rieng"]),
+            ("chom chom", ["chom chom"]),
+            ("vai", ["vai"]),
+            ("nhan", ["nhan"]),
+            ("cherry", ["cherry"]),
+            ("blueberry", ["blueberry"]),
+            ("avocado", ["avocado"]),
+            ("chanh", ["chanh"]),
         ]
         for canonical_key, aliases in fruit_aliases:
             for alias in aliases:
-                if re.search(r"(^| )%s( |$)" % re.escape(alias), normalized_name):
+                if re.search(r"(^|\s)%s(\s|$)" % re.escape(alias), normalized_name):
                     return canonical_key
         tokens = normalized_name.split()
         return tokens[0] if tokens else False
@@ -134,22 +145,23 @@ class CrmLead(models.Model):
 
         # Tìm toàn bộ sản phẩm đang kinh doanh trong hệ thống Odoo của bạn
         ProductTemplate = self.env["product.product"].sudo().search([("active","=",True),("sale_ok","=",True)])
-        match_threshold = 0.7
+        match_threshold = 0.45
         total_updated_count = 0
 
         for lead in self:
             updated_count = 0
             previous_prices_dict = {}
+            unmatched_products = []
 
             for product in ProductTemplate:
                 product_key = self._extract_fruit_key(product.name)
                 selected_price = False
-                
+
                 # Ánh xạ thông minh: Nếu cùng nhóm từ khóa gốc (Cóc, Ổi, Cam, Mít)
                 if product_key and product_key in market_price_by_key:
                     selected_price = market_price_by_key[product_key]
                 else:
-                    # Thuật toán Fallback Fuzzy tìm kiếm gần đúng nếu sai lệch ký tự
+                    # Fallback fuzzy nếu không khớp nhóm
                     product_norm = self._normalize_text(product.name)
                     best_score = 0
                     for csv_key, csv_price in market_price_by_key.items():
@@ -157,48 +169,59 @@ class CrmLead(models.Model):
                         if score >= match_threshold and score > best_score:
                             best_score = score
                             selected_price = csv_price
-                
+
                 if selected_price:
-                    # FIX AN TOÀN: Lưu lại giá đệm cũ của bảng Market Info, không đụng vào list_price của sản phẩm
                     info_exist = self.env["fruit.crm.market.info"].search([
                         ("lead_id", "=", lead.id),
                         ("product_id", "=", product.id),
                         ("grade", "=", "grade_1"),
-                        ("info_date", "=", fields.Date.today())
+                        ("info_date", "=", fields.Date.today()),
                     ], limit=1)
-                    
-                    # Lưu trữ giá đệm hiện tại vào JSON trước khi bị ghi đè dữ liệu mới
-                    previous_prices_dict[str(product.id)] = info_exist.customer_target_price if info_exist else product.list_price
+
+                    previous_prices_dict[str(product.id)] = (
+                        info_exist.customer_target_price if info_exist else product.list_price
+                    )
 
                     vals = {
                         "lead_id": lead.id,
                         "product_id": product.id,
                         "grade": "grade_1",
-                        "customer_target_price": selected_price,  # Đây là ô giá đệm cho phép bạn xem và sửa đổi thủ công
+                        "customer_target_price": selected_price,
                         "competitor_price": selected_price,
                         "info_date": fields.Date.today(),
                         "expected_qty": 0.0,
-                        "state": "draft"
+                        "state": "draft",
                     }
-                    
+
                     if info_exist:
                         info_exist.write(vals)
                     else:
                         self.env["fruit.crm.market.info"].create(vals)
                     updated_count += 1
+                else:
+                    unmatched_products.append(product.name)
 
             lead.previous_prices = json.dumps(previous_prices_dict)
             total_updated_count += updated_count
+
+        unmatched_summary = ""
+        if unmatched_products:
+            sample = ", ".join(unmatched_products[:5])
+            more = f"... (+{len(unmatched_products) - 5})" if len(unmatched_products) > 5 else ""
+            unmatched_summary = f" | Không match: {len(unmatched_products)} SP ({sample}{more})"
 
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": "Đồng bộ giá thị trường thành công",
-                "message": f"Đã chuẩn bị {total_updated_count} dòng sản phẩm đệm tại Market Info để bạn kiểm tra và sửa đổi.",
+                "message": (
+                    f"Đã cập nhật {total_updated_count} dòng Market Info."
+                    f"{unmatched_summary}"
+                ),
                 "type": "success",
-                "sticky": False
-            }
+                "sticky": True,
+            },
         }
 
     def restore_previous_prices(self):
